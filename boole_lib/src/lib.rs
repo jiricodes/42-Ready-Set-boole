@@ -10,6 +10,10 @@ use gray_code::gray_code;
 mod boolean_evaluation;
 use boolean_evaluation::eval_formula;
 
-mod boolrpntree;
+pub mod boolrpntree;
 mod exptree;
+
 mod truth_table;
+pub use truth_table::print_truth_table;
+
+mod sat;
