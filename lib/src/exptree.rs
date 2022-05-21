@@ -18,7 +18,7 @@ impl<T> ExpNode<T>
 where
     T: Not<Output = T>,
 {
-    pub fn negation<L>(left: L) -> Self
+    pub fn neg<L>(left: L) -> Self
     where
         L: Into<ExpNode<T>>,
     {

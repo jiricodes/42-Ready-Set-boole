@@ -10,4 +10,5 @@ use gray_code::gray_code;
 mod boolean_evaluation;
 use boolean_evaluation::eval_formula;
 
+mod boolrpntree;
 mod exptree;
