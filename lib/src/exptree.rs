@@ -113,3 +113,23 @@ where
         }
     }
 }
+
+impl<T> From<T> for ExpNode<T> {
+    fn from(t: T) -> ExpNode<T> {
+        ExpNode::Leaf(t)
+    }
+}
+
+impl<T> ExpNode<T> {
+    pub fn new(t: T) -> Self {
+        Self::Leaf(t)
+    }
+
+    pub fn value(self) -> T {
+        match self {
+            Self::Leaf(val) => val,
+            Self::OneOp { left, op } => op(left.value()),
+            Self::TwoOp { left, right, op } => op(left.value(), right.value()),
+        }
+    }
+}
