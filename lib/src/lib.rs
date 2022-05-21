@@ -12,3 +12,4 @@ use boolean_evaluation::eval_formula;
 
 mod boolrpntree;
 mod exptree;
+mod truth_table;

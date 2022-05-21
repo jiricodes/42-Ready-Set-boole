@@ -43,3 +43,12 @@ Evaluates supplied propositional formula in reversed polish notation.
 |-----------------------|----------------------------------|
 | Max Time Complexity:  | O(n)                             |
 | Max Space Complexity: | N/A                             |
+
+## 04 Truth table
+
+Prints truth table for supplied propositional formula in reversed polish notation.
+
+| Boolean evaluation           | `fn print_truth_table(formula: &str);` |
+|-----------------------|----------------------------------|
+| Max Time Complexity:  | O(2^n)                             |
+| Max Space Complexity: | N/A                             |
