@@ -60,7 +60,7 @@ impl BoolRpnStack {
         self.op_len_check(2, "Material condition");
         let b = self.stack.pop().unwrap();
         let a = self.stack.pop().unwrap();
-        self.stack.push(if a && !b { false } else { true });
+        self.stack.push(!(a && !b));
     }
 
     fn logical_equivalence(&mut self) {
