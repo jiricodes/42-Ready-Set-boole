@@ -1,3 +1,4 @@
+#[inline(always)]
 pub fn adder(a: u32, b: u32) -> u32 {
     let mut carry = 0;
     let mut ret = 0;
@@ -16,6 +17,23 @@ pub fn adder(a: u32, b: u32) -> u32 {
         panic!("attempt to add with overflow");
     }
     ret
+}
+
+#[inline(always)]
+pub fn adder2(a: u32, b: u32) -> u32 {
+    let mut carry = a & b;
+    let mut result = a ^ b;
+    while carry != 0 {
+        let shifted_carry = carry << 1;
+        carry = result & shifted_carry;
+        result = result ^ shifted_carry;
+    }
+    result
+}
+
+#[inline(always)]
+pub fn adder_ref(a: u32, b: u32) -> u32 {
+    a + b
 }
 
 mod tests {
@@ -84,5 +102,63 @@ mod tests {
         let a = u32::MAX;
         let b = 5;
         adder(a, b);
+    }
+
+    #[test]
+    fn test_adder2() {
+        let mut a;
+        let mut b;
+
+        a = 0;
+        b = 0;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 1;
+        b = 0;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 0;
+        b = 1;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 1;
+        b = 1;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 7;
+        b = 3;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 3;
+        b = 7;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 123;
+        b = 123;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 0b101010;
+        b = 0b010101;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 0b111111;
+        b = 0b010101;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 0b111111;
+        b = 0b011101;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 0b111111;
+        b = 0b011001;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 2147483647;
+        b = 1073741823;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
+
+        a = 1073741823;
+        b = 2147483647;
+        assert_eq!(a + b, adder2(a, b), "{} + {}", a, b);
     }
 }

@@ -1,8 +1,10 @@
 mod adder;
-use adder::adder;
+pub use adder::adder;
+pub use adder::adder2;
+pub use adder::adder_ref;
 
 mod multiplier;
-use multiplier::multiplier;
+pub use multiplier::{multiplier, multiplier2, multiplier_easy, multiplier_ref};
 
 mod gray_code;
 use gray_code::gray_code;
