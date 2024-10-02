@@ -1,54 +1,36 @@
-use crate::{adder, adder2};
+//! 01 Multiplier
+//! The goal is the same as the previous exercise (00 Adder), except
+//! the returned natural number equals a * b. The only operations you’re
+//! allowed to use are:
+//!     - & (bitwise AND)
+//!     - | (bitwise OR)
+//!     - ^ (bitwise XOR)
+//!     - << (left shift)
+//!     - >> (right shift)
+//!     - = (assignment)
+//!     - ==, !=, <, >, <=, >= (comparison operators)
+//! The incrementation operator (++ or += 1) is allowed only to increment
+//! the index of a loop and must not be used to compute the result itself.
 
-/// Russian Peasant method
-#[inline(always)]
-pub fn multiplier(a: u32, b: u32) -> u32 {
+use crate::adder;
+
+/// For the solution I decided to go with the Russian peasant method
+/// - [Wiki](https://en.wikipedia.org/wiki/Ancient_Egyptian_multiplication#Russian_peasant_multiplication)
+/// - [Geeks for Geeks](https://www.geeksforgeeks.org/russian-peasant-multiply-two-numbers-using-bitwise-operators/)
+/// - [Nice explanation](https://www.themathdoctors.org/russian-peasant-multiplication-how-and-why/)
+/// This solution doesn't prevent overflow.
+pub fn multiplier(a: u32, b:u32) -> u32 {
+    let mut res: u32 = 0;
     let mut a = a;
     let mut b = b;
-    let mut ret = 0;
-    for _ in 0..32 {
-        if b & 1 == 1 {
-            ret = adder(ret, a);
+    while b > 0 {
+        if b & 1 != 0 {
+            res = adder(res, a)
         }
-        b = b >> 1;
         a = a << 1;
-    }
-    ret
-}
-
-#[inline(always)]
-pub fn multiplier2(a: u32, b: u32) -> u32 {
-    let mut a = a;
-    let mut b = b;
-    let mut ret = 0;
-    for _ in 0..32 {
-        if b & 1 == 1 {
-            ret = adder2(ret, a);
-        }
         b = b >> 1;
-        a = a << 1;
     }
-    ret
-}
-
-#[inline(always)]
-pub fn multiplier_ref(a: u32, b: u32) -> u32 {
-    a * b
-}
-
-#[inline(always)]
-pub fn multiplier_easy(a: u32, b: u32) -> u32 {
-    let mut a = a;
-    let mut b = b;
-    let mut result = 0;
-    while a != 0 {
-        if a & 1 == 1 {
-            result = adder2(result, b);
-        }
-        a = a >> 1;
-        b = b << 1;
-    }
-    result
+    res
 }
 
 #[cfg(test)]
