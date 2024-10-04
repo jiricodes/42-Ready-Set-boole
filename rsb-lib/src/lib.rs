@@ -2,10 +2,12 @@ mod adder;
 mod ast;
 mod graycode;
 mod multiplier;
+mod powerset;
 
 pub use adder::adder;
 pub use graycode::gray_code;
 pub use multiplier::multiplier;
+pub use powerset::powerset;
 
 use ast::{Lexer, Node};
 
@@ -55,5 +57,49 @@ pub fn print_truth_table(formula: &str) {
             "0"
         };
         println!("{}| {} |", table_line, ret);
+    }
+}
+
+pub fn sat(formula: &str) -> bool {
+    let formula: String = formula.to_uppercase();
+    let mut vars: Vec<char> = formula
+        .chars()
+        .filter(|c| c.is_ascii_alphabetic())
+        .collect();
+    vars.sort();
+    vars.dedup();
+    let l = vars.len();
+    for i in 0..2u32.pow(l as u32) {
+        let mut current = formula.clone();
+        for (n, c) in vars.iter().enumerate() {
+            let val = if i & (1 << (l - 1 - n)) != 0 {
+                "1"
+            } else {
+                "0"
+            };
+            current = current.replace(*c, val);
+        }
+        if eval_formula(current.as_str()) {
+            return true;
+        } 
+    }
+    false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sat_subject() {
+        let tests: Vec<(bool, &str)> = vec![
+            (true, "AB|"),
+            (true, "AB&"),
+            (false, "AA!&"),
+            (false, "AA^"),
+        ];
+        for (exp, test) in tests.iter() {
+            assert_eq!(*exp, sat(*test), "Case \"{}\"", *test);
+        }
     }
 }
