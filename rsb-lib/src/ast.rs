@@ -2,9 +2,9 @@
 //! AST for the reversed polish notation of this project.
 //!
 //!Based on [Writing An Interpreter In Go](https://interpreterbook.com)
+use std::fmt::Debug;
 use std::iter::Enumerate;
 use std::str::Chars;
-use std::fmt::Debug;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Token {
@@ -108,7 +108,6 @@ impl Node {
         }
     }
 
-
     fn or<L, R>(left: L, right: R) -> Self
     where
         L: Into<Node>,
@@ -173,35 +172,59 @@ impl<'a> From<Lexer<'a>> for Node {
                 Token::False => rpn_stack.push(false.into()),
                 Token::True => rpn_stack.push(true.into()),
                 Token::Negation => {
-                    let node = rpn_stack.pop().expect("Invalid stack: Missing operand for Negation");
+                    let node = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Negation");
                     rpn_stack.push(Self::negation(node));
-                } ,
+                }
                 Token::And => {
-                    let right = rpn_stack.pop().expect("Invalid stack: Missing operand for Conjunction");
-                    let left = rpn_stack.pop().expect("Invalid stack: Missing operand for Conjunction");
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Conjunction");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Conjunction");
                     rpn_stack.push(Self::and(left, right));
-                },
+                }
                 Token::Or => {
-                    let right = rpn_stack.pop().expect("Invalid stack: Missing operand for Disjunction");
-                    let left = rpn_stack.pop().expect("Invalid stack: Missing operand for Disjunction");
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Disjunction");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Disjunction");
                     rpn_stack.push(Self::or(left, right));
-                },
+                }
                 Token::Xor => {
-                    let right = rpn_stack.pop().expect("Invalid stack: Missing operand for Exclusive Disjunction");
-                    let left = rpn_stack.pop().expect("Invalid stack: Missing operand for Exclusive Disjunction");
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Exclusive Disjunction");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Exclusive Disjunction");
                     rpn_stack.push(Self::xor(left, right));
-                },
+                }
                 Token::Cond => {
-                    let right = rpn_stack.pop().expect("Invalid stack: Missing operand for Material Condition");
-                    let left = rpn_stack.pop().expect("Invalid stack: Missing operand for Material Condition");
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Material Condition");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Material Condition");
                     rpn_stack.push(Self::cond(left, right));
-                },
+                }
                 Token::Eq => {
-                    let right = rpn_stack.pop().expect("Invalid stack: Missing operand for Logical Equivalence");
-                    let left = rpn_stack.pop().expect("Invalid stack: Missing operand for Logical Equivalence");
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Logical Equivalence");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Logical Equivalence");
                     rpn_stack.push(Self::eq(left, right));
-                },
-                Token::EOF | Token::Illegal => { panic!("Unexpected token"); },
+                }
+                Token::EOF | Token::Illegal => {
+                    panic!("Unexpected token");
+                }
             }
             current_token = lexer.next_token();
         }
@@ -212,10 +235,6 @@ impl<'a> From<Lexer<'a>> for Node {
     }
 }
 
-pub fn eval_formula(formula: &str) -> bool {
-    let rpn: Node = Lexer::new(formula).into();
-    rpn.value()
-}
 
 #[cfg(test)]
 mod tests {
