@@ -3,16 +3,21 @@ mod ast;
 mod graycode;
 mod multiplier;
 mod powerset;
+mod rpn_bool;
+mod token;
+mod lexer;
 
 pub use adder::adder;
 pub use graycode::gray_code;
 pub use multiplier::multiplier;
 pub use powerset::powerset;
+pub use token::Token;
+pub use lexer::Lexer;
+pub use ast::BoolNode;
 
-use ast::{Lexer, Node};
 
 pub fn eval_formula(formula: &str) -> bool {
-    let rpn: Node = Lexer::new(formula).into();
+    let rpn: BoolNode = Lexer::new(formula).into();
     rpn.value()
 }
 
