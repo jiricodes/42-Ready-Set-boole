@@ -1,5 +1,6 @@
 use rsb_lib::eval_formula;
 
 fn main() {
-    println!("{}", eval_formula("1011||="));
+    let formula = "1011||=";
+    println!("{}\n{}", formula, eval_formula(formula));
 }

@@ -37,3 +37,37 @@ impl From<char> for BoolToken {
         }
     }
 }
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum CharToken {
+    Value(char),    // A..Z
+    Negation, // ! ¬ Negation
+    And,      // & ∧ Conjunction
+    Or,       // | ∨ Disjunction
+    Xor,      // ˆ ⊕ Exclusive disjunction
+    Cond,     // > ⇒ Material condition
+    Eq,       // = ⇔ Logical equivalence
+    EOF,
+    Illegal,
+}
+
+impl Token for CharToken {
+    fn eof() -> Self {
+        Self::EOF
+    }
+}
+
+impl From<char> for CharToken {
+    fn from(value: char) -> Self {
+        match value {
+            'A'..'Z' => Self::Value(value),
+            '!' => Self::Negation,
+            '&' => Self::And,
+            '|' => Self::Or,
+            '^' => Self::Xor,
+            '>' => Self::Cond,
+            '=' => Self::Eq,
+            _ => Self::Illegal,
+        }
+    }
+}

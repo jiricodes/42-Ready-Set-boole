@@ -1,6 +1,6 @@
-use crate::BoolNode;
+use crate::{VarNode, BoolNode};
 use crate::Lexer;
-use crate::token::BoolToken;
+use crate::token::{BoolToken, CharToken};
 use crate::lexer::LexerTrait;
 
 
@@ -77,6 +77,77 @@ impl<'a> From<Lexer<'a>> for BoolNode {
     }
 }
 
+
+impl<'a> From<Lexer<'a>> for VarNode {
+    fn from(mut lexer: Lexer) -> Self {
+        let mut rpn_stack: Vec<Self> = Vec::new();
+        let mut current_token: CharToken = lexer.next_token();
+        while current_token != CharToken::EOF {
+            match current_token {
+                CharToken::Value(val) => rpn_stack.push(val.into()),
+                CharToken::Negation => {
+                    let node = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Negation");
+                    rpn_stack.push(Self::negation(node));
+                }
+                CharToken::And => {
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Conjunction");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Conjunction");
+                    rpn_stack.push(Self::and(left, right));
+                }
+                CharToken::Or => {
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Disjunction");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Disjunction");
+                    rpn_stack.push(Self::or(left, right));
+                }
+                CharToken::Xor => {
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Exclusive Disjunction");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Exclusive Disjunction");
+                    rpn_stack.push(Self::xor(left, right));
+                }
+                CharToken::Cond => {
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Material Condition");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Material Condition");
+                    rpn_stack.push(Self::cond(left, right));
+                }
+                CharToken::Eq => {
+                    let right = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Logical Equivalence");
+                    let left = rpn_stack
+                        .pop()
+                        .expect("Invalid stack: Missing operand for Logical Equivalence");
+                    rpn_stack.push(Self::eq(left, right));
+                }
+                CharToken::EOF | CharToken::Illegal => {
+                    panic!("Unexpected token");
+                }
+            }
+            current_token = lexer.next_token();
+        }
+        if rpn_stack.len() != 1 {
+            panic!("Invalid formula: Missing operations. Stack lenght should be 1 when reached EOF, but is {}.", rpn_stack.len());
+        }
+        rpn_stack.pop().expect("Invalid formula: Stack is empty")
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -13,12 +13,18 @@ pub use multiplier::multiplier;
 pub use powerset::powerset;
 pub use token::Token;
 pub use lexer::Lexer;
-pub use ast::BoolNode;
+pub use ast::{BoolNode, VarNode};
 
 
 pub fn eval_formula(formula: &str) -> bool {
     let rpn: BoolNode = Lexer::new(formula).into();
     rpn.value()
+}
+
+pub fn negation_normal_form(formula: &str) -> String {
+    let mut rpn: VarNode = Lexer::new(formula).into();
+    rpn.nnf_reduce();
+    format!("{}", rpn)
 }
 
 fn print_header(labels: &Vec<char>) {
