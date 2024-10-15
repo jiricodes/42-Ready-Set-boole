@@ -27,6 +27,13 @@ pub fn negation_normal_form(formula: &str) -> String {
     format!("{}", rpn)
 }
 
+pub fn conjunctive_normal_form(formula: &str) -> String {
+    let mut rpn: VarNode = Lexer::new(formula).into();
+    rpn.cnf_reduce();
+    dbg!(&rpn);
+    format!("{}", rpn)
+}
+
 fn print_header(labels: &Vec<char>) {
     let mut line = String::new();
     let mut underscore = String::new();

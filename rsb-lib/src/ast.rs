@@ -3,7 +3,7 @@
 //!
 //!Based on [Writing An Interpreter In Go](https://interpreterbook.com)
 use std::{
-    fmt::Display,
+    fmt::{Display, Debug},
     ops::{BitAnd, BitOr, BitXor, Not},
 };
 
@@ -299,6 +299,18 @@ impl VarNode {
         }
     }
 
+    fn is_twoop(&self) -> bool {
+        // !self.is_leaf() && !self.is_op(Op::Neg)
+        match self {
+            Self::TwoOp {
+                left: _,
+                right: _,
+                op: _,
+            } => true,
+            _ => false,
+        }
+    }
+
     fn get_left(&self) -> Option<VarNode> {
         match self {
             Self::Leaf(_) => None,
@@ -365,12 +377,69 @@ impl VarNode {
         }
     }
 
+    fn has_cnf_forbidden(&self) -> bool {
+        match self {
+            Self::Leaf(_) => return false,
+            Self::OneOp { left, op } => {
+                if *op == Op::Neg && !left.is_leaf() {
+                    true
+                } else {
+                    left.has_nnf_forbidden()
+                }
+            }
+            Self::TwoOp { left, right, op } => {
+                if (*op == Op::Cond) | (*op == Op::Eq) {
+                    true
+                } else {
+                    left.has_nnf_forbidden() | right.has_nnf_forbidden()
+                }
+            }
+        }
+    }
+
+
     pub fn nnf_reduce(&mut self) {
         let mut not_finished = self.has_nnf_forbidden();
         while not_finished {
             *self = Self::reduce(self.clone());
             not_finished = self.has_nnf_forbidden();
         }
+    }
+
+    fn twoop_to_right(&mut self) {
+ match *self {
+            VarNode::Leaf(_) => {}
+            VarNode::OneOp {
+                ref mut left,
+                op: _,
+            } => {
+                left.twoop_to_right();
+            }
+            VarNode::TwoOp {
+                ref mut left,
+                ref mut right,
+                op: _,
+            } => {
+                if left.is_twoop() && !right.is_twoop() {
+                    let left_clone = left.clone();
+                    *left = right.clone();
+                    *right = left_clone;
+
+                }
+                left.twoop_to_right();
+                right.twoop_to_right();
+            }
+        }
+ 
+    }
+
+    pub fn cnf_reduce(&mut self) {
+        let mut not_finished = self.has_cnf_forbidden();
+        while not_finished {
+            *self = Self::reduce(self.clone());
+            not_finished = self.has_cnf_forbidden();
+        }
+        self.twoop_to_right();
     }
 
     pub fn reduce(node: VarNode) -> VarNode {
@@ -474,6 +543,16 @@ impl Display for VarNode {
         }
     }
 }
+
+// impl Debug for VarNode {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self {
+//             VarNode::Leaf(val) => write!(f, "Val({})", val),
+//             VarNode::OneOp { left, op } => write!(f, "{}({})", op.as_symbol(), left),
+//             VarNode::TwoOp { left, right, op } => write!(f, "{}({}{})", op.as_symbol(), left, right),
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
