@@ -2,9 +2,9 @@ use rsb_lib::{adder, multiplier};
 use std::default;
 
 use iced::{
-    widget::{button, column, container, horizontal_space, row, text, text_input, Column},
+    widget::{button, column, container, horizontal_space, row, text, text_input, Column, vertical_space},
     Element,
-    Length::Fill,
+    Length::Fill, Color,
 };
 
 #[derive(Default)]
@@ -12,7 +12,7 @@ struct App {
     screen: Screen,
     uint_a: u32,
     uint_b: u32,
-    error_string: String,
+    error_string: Option<String>,
 }
 
 impl App {
@@ -22,11 +22,17 @@ impl App {
             Message::IntInputA(value) => {
                 if let Ok(x) = value.parse() {
                     self.uint_a = x;
+                    self.error_string = None;
+                } else {
+                    self.error_string = Some(format!("Failed to parse \"{}\" into u32", value));
                 }
             }
             Message::IntInputB(value) => {
                 if let Ok(x) = value.parse() {
                     self.uint_b = x;
+                    self.error_string = None;
+                } else {
+                    self.error_string = Some(format!("Failed to parse \"{}\" into u32", value));
                 }
             }
         }
@@ -56,7 +62,12 @@ impl App {
             Screen::Ex11 => self.ex11(),
         };
 
-        let content: Element<_> = column![controls, screen].into();
+        let mut status_bar = row![];
+        if let Some(error_text) = &self.error_string {
+            status_bar = status_bar.push(text(error_text).color(Color::from_rgb8(255, 20, 20)));
+        }
+
+        let content: Element<_> = column![controls, screen, vertical_space(), status_bar].into();
 
         // container(content).center_y(Fill).into()
         container(content).into()
