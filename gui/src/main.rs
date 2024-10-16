@@ -1,10 +1,13 @@
-use rsb_lib::{adder, multiplier};
+use rsb_lib::{adder, gray_code, multiplier};
 use std::default;
 
 use iced::{
-    widget::{button, column, container, horizontal_space, row, text, text_input, Column, vertical_space},
-    Element,
-    Length::Fill, Color,
+    widget::{
+        button, column, container, horizontal_space, row, text, text_input, toggler,
+        vertical_space, Column,
+    },
+    Color, Element,
+    Length::Fill,
 };
 
 #[derive(Default)]
@@ -13,6 +16,7 @@ struct App {
     uint_a: u32,
     uint_b: u32,
     error_string: Option<String>,
+    debug: bool,
 }
 
 impl App {
@@ -35,6 +39,7 @@ impl App {
                     self.error_string = Some(format!("Failed to parse \"{}\" into u32", value));
                 }
             }
+            Message::DebugToggle(value) => self.debug = value,
         }
     }
 
@@ -44,6 +49,11 @@ impl App {
             controls = controls.push(button(screen.as_str()).on_press(Message::from(*screen)));
             // controls = controls.push(horizontal_space());
         }
+        controls = controls.push(
+            toggler(self.debug)
+                .label("Debug View:")
+                .on_toggle(Message::DebugToggle),
+        );
         controls = controls.push(horizontal_space());
 
         let screen = match self.screen {
@@ -70,7 +80,12 @@ impl App {
         let content: Element<_> = column![controls, screen, vertical_space(), status_bar].into();
 
         // container(content).center_y(Fill).into()
-        container(content).into()
+        container(if self.debug {
+            content.explain(Color::WHITE)
+        } else {
+            content
+        })
+        .into()
     }
     fn home(&self) -> Element<Message> {
         column![text("Ready Set Bool").size(50)]
@@ -166,7 +181,61 @@ impl App {
     }
 
     fn ex02(&self) -> Element<Message> {
-        column![text("ex02").size(50)].spacing(20).into()
+        let a: String = format!("{}", self.uint_a);
+
+        let a_input = text_input("", a.as_str()).on_input(Message::IntInputA);
+
+        let row_a = row!["N: ", a_input];
+
+        let width = 100;
+
+        let steps = column![
+            row![
+                text("GC(N - 1):").width(width),
+                text(format!(
+                    "{:032b}",
+                    if self.uint_a > 0 {
+                        gray_code(self.uint_a - 1)
+                    } else {
+                        0
+                    }
+                )),
+            ],
+            row![
+                text("GC(N):").width(width),
+                text(format!("{:032b}", gray_code(self.uint_a))),
+            ],
+            row![
+                text("GC(N + 1):").width(width),
+                text(format!("{:032b}", gray_code(self.uint_a + 1))),
+            ],
+        ];
+
+        let result = format!("grey_code({}) = {}", self.uint_a, gray_code(self.uint_a));
+
+        column![text("Exercise 02 - Gray code").size(50)]
+            .spacing(20)
+            .push(
+                "Goal is to write a function that takes as parameters \
+                two natural numbers a and b and returns one natural number \
+                that equals a * b. The caveat is that we can use only bitwise \
+                operations, assignment and comparison operators.",
+            )
+            .push(
+                "The incrementation operator (++ or += 1) is allowed only \
+                to increment the index of a loop and must not be used \
+                to compute the result itself.",
+            )
+            .push(
+                "Solution: Has been achieved by implementing the Russian \
+                peasant method. Where while we have B > 0 we add A to the \
+                result, but only if B is odd. Then we half B and double A \
+                and repeat.See incode comments for sources.",
+            )
+            .push(row_a)
+            .push(steps)
+            .push(text(result).size(30))
+            .into()
     }
 
     fn ex03(&self) -> Element<Message> {
@@ -265,6 +334,7 @@ enum Message {
     Screen(Screen),
     IntInputA(String),
     IntInputB(String),
+    DebugToggle(bool),
 }
 
 impl From<Screen> for Message {
