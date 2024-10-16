@@ -1,4 +1,4 @@
 [workspace]
-members = [ "00_adder", "01_multiplier", "02_graycode", "03_boolean_evaluation", "04_truth_table", "05_NNF", "06_CNF", "07_SAT", "08_Powerset", "rsb-lib",
+members = [ "00_adder", "01_multiplier", "02_graycode", "03_boolean_evaluation", "04_truth_table", "05_NNF", "06_CNF", "07_SAT", "08_Powerset", "gui", "rsb-lib",
 ]
 resolver = "2"
