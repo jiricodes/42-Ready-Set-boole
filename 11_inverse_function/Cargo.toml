@@ -1,8 +1,7 @@
 [package]
-name = "ex10"
+name = "ex11"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 rsb-lib = { path = "../rsb-lib" } 
-

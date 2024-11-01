@@ -6,6 +6,7 @@ mod powerset;
 mod rpn_bool;
 mod token;
 mod lexer;
+mod zcurve;
 
 pub use adder::adder;
 pub use graycode::gray_code;
@@ -14,6 +15,7 @@ pub use powerset::powerset;
 pub use token::{Token, BoolToken, CharToken};
 pub use lexer::Lexer;
 pub use ast::{BoolNode, VarNode};
+pub use zcurve::{map, reverse_map};
 
 
 pub fn eval_formula(formula: &str) -> bool {
