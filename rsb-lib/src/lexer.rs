@@ -11,6 +11,7 @@ pub trait LexerTrait<T> where T: Token {
             T::eof()
         }
     }
+
 }
 
 pub struct Lexer<'a> {
@@ -22,6 +23,17 @@ impl<'a> Lexer<'a> {
         Self {
             iter: input.chars(),
         }
+    }
+
+    pub fn scan_for_illegal<T: Token>(&self) -> Option<char> {
+        let iter_cpy = self.iter.clone();
+        for c in iter_cpy {
+            let t: T = c.into();
+            if t.is_illegal() {
+                return Some(c);
+            }
+        }
+        None
     }
 }
 

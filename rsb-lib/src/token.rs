@@ -1,5 +1,6 @@
 pub trait Token: From<char> {
     fn eof() -> Self;
+    fn is_illegal(&self) -> bool;
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -19,6 +20,10 @@ pub enum BoolToken {
 impl Token for BoolToken {
     fn eof() -> Self {
         Self::EOF
+    }
+
+    fn is_illegal(&self) -> bool {
+        *self == Self::Illegal
     }
 }
 
@@ -54,6 +59,10 @@ pub enum CharToken {
 impl Token for CharToken {
     fn eof() -> Self {
         Self::EOF
+    }
+
+    fn is_illegal(&self) -> bool {
+        *self == Self::Illegal
     }
 }
 

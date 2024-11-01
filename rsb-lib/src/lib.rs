@@ -11,7 +11,7 @@ pub use adder::adder;
 pub use graycode::gray_code;
 pub use multiplier::multiplier;
 pub use powerset::powerset;
-pub use token::Token;
+pub use token::{Token, BoolToken, CharToken};
 pub use lexer::Lexer;
 pub use ast::{BoolNode, VarNode};
 

@@ -3,7 +3,7 @@
 //!
 //!Based on [Writing An Interpreter In Go](https://interpreterbook.com)
 use std::{
-    fmt::{Display, Debug},
+    fmt::{Debug, Display},
     ops::{BitAnd, BitOr, BitXor, Not},
 };
 
@@ -157,7 +157,7 @@ impl<T: Display> Display for Node<T> {
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
-enum Op {
+pub enum Op {
     Neg,
     And,
     Or,
@@ -186,6 +186,17 @@ impl Op {
             Op::Xor => "^",
             Op::Cond => ">",
             Op::Eq => "=",
+        }
+    }
+
+    pub fn as_char(&self) -> char {
+        match self {
+            Op::Neg => '!',
+            Op::And => '&',
+            Op::Or => '|',
+            Op::Xor => '^',
+            Op::Cond => '>',
+            Op::Eq => '=',
         }
     }
 }
@@ -311,7 +322,7 @@ impl VarNode {
         }
     }
 
-    fn get_left(&self) -> Option<VarNode> {
+    pub fn get_left(&self) -> Option<VarNode> {
         match self {
             Self::Leaf(_) => None,
             Self::OneOp { left, op: _ }
@@ -323,7 +334,7 @@ impl VarNode {
         }
     }
 
-    fn get_right(&self) -> Option<VarNode> {
+    pub fn get_right(&self) -> Option<VarNode> {
         match self {
             Self::Leaf(_) | Self::OneOp { left: _, op: _ } => None,
             Self::TwoOp {
@@ -397,7 +408,6 @@ impl VarNode {
         }
     }
 
-
     pub fn nnf_reduce(&mut self) {
         let mut not_finished = self.has_nnf_forbidden();
         while not_finished {
@@ -407,7 +417,7 @@ impl VarNode {
     }
 
     fn twoop_to_right(&mut self) {
- match *self {
+        match *self {
             VarNode::Leaf(_) => {}
             VarNode::OneOp {
                 ref mut left,
@@ -424,13 +434,11 @@ impl VarNode {
                     let left_clone = left.clone();
                     *left = right.clone();
                     *right = left_clone;
-
                 }
                 left.twoop_to_right();
                 right.twoop_to_right();
             }
         }
- 
     }
 
     pub fn cnf_reduce(&mut self) {
@@ -525,6 +533,30 @@ impl VarNode {
         }
         new_node.reduce_children();
         new_node
+    }
+
+    pub fn char_repr(&self) -> char {
+        match self {
+            VarNode::Leaf(val) => *val,
+            VarNode::OneOp { left: _, op }
+            | VarNode::TwoOp {
+                left: _,
+                right: _,
+                op,
+            } => op.as_char(),
+        }
+    }
+
+    pub fn depth(&self) -> usize {
+        match self {
+            VarNode::Leaf(_) => 0,
+            VarNode::OneOp { left, op: _} => 1 + left.depth(), 
+            VarNode::TwoOp {
+                left,
+                right,
+                op: _,
+            } => 1 + left.depth().max(right.depth()),
+        }
     }
 }
 

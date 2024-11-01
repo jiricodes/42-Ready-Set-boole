@@ -1,14 +1,19 @@
-use rsb_lib::{adder, gray_code, multiplier};
-use std::default;
+use rsb_lib::{adder, gray_code, multiplier, BoolNode, BoolToken, Lexer, CharToken, VarNode};
 
 use iced::{
     widget::{
-        button, column, container, horizontal_space, row, text, text_input, toggler,
+        button, column, container, horizontal_space, pick_list, row, text, text_input, toggler,
         vertical_space, Column,
     },
-    Color, Element,
-    Length::Fill,
+    Color, Element, Theme, Alignment::Center, padding,
 };
+
+mod message;
+mod screen;
+mod tree_widget;
+use message::Message;
+use screen::Screen;
+use tree_widget::{VizTree, adapter};
 
 #[derive(Default)]
 struct App {
@@ -17,6 +22,11 @@ struct App {
     uint_b: u32,
     error_string: Option<String>,
     debug: bool,
+    input_string: String,
+    boolrpn: String,
+    bool_result: Option<bool>,
+    viztree: VizTree,
+    theme: Theme,
 }
 
 impl App {
@@ -40,21 +50,51 @@ impl App {
                 }
             }
             Message::DebugToggle(value) => self.debug = value,
+            Message::InputStringChange(value) => {
+                self.input_string = value;
+            }
+            Message::EvalBoolRpn => {
+                // validate the RPN
+                let lexer = Lexer::new(self.input_string.as_str());
+                if let Some(c) = lexer.scan_for_illegal::<BoolToken>() {
+                    self.error_string =
+                        Some(format!("Illegal character in the RPN input - '{}'", c));
+                    self.bool_result = None;
+                } else {
+                    let rpn: BoolNode = lexer.into();
+                    self.boolrpn = self.input_string.clone();
+                    self.bool_result = Some(rpn.value());
+                }
+            },
+            Message::EvalVarRpn => {
+                // validate the RPN
+                let lexer = Lexer::new(self.input_string.as_str());
+                if let Some(c) = lexer.scan_for_illegal::<CharToken>() {
+                    self.error_string =
+                        Some(format!("Illegal character in the RPN input - '{}'", c));
+                    self.bool_result = None;
+                } else {
+                    let rpn: VarNode = lexer.into();
+                }
+            }
+            Message::ThemeSelected(theme) => self.theme = theme,
         }
     }
 
     fn view(&self) -> Element<Message> {
-        let mut controls = row![horizontal_space()];
+        let mut controls = row![];
         for screen in Screen::ALL {
             controls = controls.push(button(screen.as_str()).on_press(Message::from(*screen)));
             // controls = controls.push(horizontal_space());
         }
-        controls = controls.push(
-            toggler(self.debug)
-                .label("Debug View:")
-                .on_toggle(Message::DebugToggle),
-        );
-        controls = controls.push(horizontal_space());
+        controls = controls
+            .push(horizontal_space())
+            .push(
+                toggler(self.debug)
+                    .label("Debug View")
+                    .on_toggle(Message::DebugToggle),
+            )
+            .padding(5).spacing(5).align_y(Center);
 
         let screen = match self.screen {
             Screen::Home => self.home(),
@@ -87,9 +127,13 @@ impl App {
         })
         .into()
     }
+
+    fn scene_container(title: &str) -> Column<'_, Message> {
+        column![text(title).size(50)].spacing(20).padding(10)
+    }
+
     fn home(&self) -> Element<Message> {
-        column![text("Ready Set Bool").size(50)]
-            .spacing(20)
+        Self::scene_container("Ready Set Bool")
             .push("An introduction to Boolean Algebra")
             .into()
     }
@@ -111,8 +155,7 @@ impl App {
             adder(self.uint_a, self.uint_b)
         );
 
-        column![text("Exercise 00 - Adder").size(50)]
-            .spacing(20)
+        Self::scene_container("Exercise 00 - Adder")
             .push(
                 "Goal is to write a function that takes as parameters \
                 two natural numbers a and b and returns one natural number \
@@ -155,8 +198,7 @@ impl App {
             multiplier(self.uint_a, self.uint_b)
         );
 
-        column![text("Exercise 01 - Multiplier").size(50)]
-            .spacing(20)
+        Self::scene_container("Exercise 01 - Multiplier")
             .push(
                 "Goal is to write a function that takes as parameters \
                 two natural numbers a and b and returns one natural number \
@@ -213,24 +255,10 @@ impl App {
 
         let result = format!("grey_code({}) = {}", self.uint_a, gray_code(self.uint_a));
 
-        column![text("Exercise 02 - Gray code").size(50)]
-            .spacing(20)
+        Self::scene_container("Exercise 02 - Gray code")
             .push(
-                "Goal is to write a function that takes as parameters \
-                two natural numbers a and b and returns one natural number \
-                that equals a * b. The caveat is that we can use only bitwise \
-                operations, assignment and comparison operators.",
-            )
-            .push(
-                "The incrementation operator (++ or += 1) is allowed only \
-                to increment the index of a loop and must not be used \
-                to compute the result itself.",
-            )
-            .push(
-                "Solution: Has been achieved by implementing the Russian \
-                peasant method. Where while we have B > 0 we add A to the \
-                result, but only if B is odd. Then we half B and double A \
-                and repeat.See incode comments for sources.",
+                "Goal is to write a function that takes an integer n and \
+                returns its equivalent in Gray code",
             )
             .push(row_a)
             .push(steps)
@@ -239,107 +267,93 @@ impl App {
     }
 
     fn ex03(&self) -> Element<Message> {
-        column![text("ex03").size(50)].spacing(20).into()
+        let rpn = &self.input_string;
+
+        let rpn_input = text_input("", rpn).on_input(Message::InputStringChange);
+
+        let row_a = row!["RPN: ", rpn_input];
+
+        let eval_label = "Evaluate";
+
+        let result = if let Some(value) = self.bool_result {
+            format!("eval_formula(\"{}\") = {}", self.boolrpn, value)
+        } else {
+            format!(
+                "Type RPN formula to the input field and press '{}'",
+                eval_label
+            )
+        };
+
+        Self::scene_container("Exercise 03 - Boolean evaluation")
+            .push(
+                "Goal is to write a function that takes as input a string \
+                that contains a propositional formula in reverse polish \
+                notation, evaluates this formula, then returns the result.",
+            )
+            .push(row_a)
+            .push(button(eval_label).on_press(Message::EvalBoolRpn))
+            .push(text(result).size(30))
+            .into()
     }
 
     fn ex04(&self) -> Element<Message> {
-        column![text("ex04").size(50)].spacing(20).into()
+        Self::scene_container("ex04").into()
     }
 
     fn ex05(&self) -> Element<Message> {
-        column![text("ex05").size(50)].spacing(20).into()
+        let rpn = &self.input_string;
+
+        let rpn_input = text_input("", rpn).on_input(Message::InputStringChange);
+
+        let row_a = row!["RPN: ", rpn_input];
+
+        let eval_label = "Evaluate";
+
+        let result = if let Some(value) = self.bool_result {
+            format!("eval_formula(\"{}\") = {}", self.boolrpn, value)
+        } else {
+            format!(
+                "Type RPN formula to the input field and press '{}'",
+                eval_label
+            )
+        };
+
+        Self::scene_container("Exercise 05 - Negation Normal Form")
+            .push(
+                "Goal is to write a function that takes as input a string \
+                that contains a propositional formula in reverse polish \
+                notation, and returns an equivalent formula in Negation \
+                Normal Form (NNF), meaning that every negation operators \
+                must be located right after a variable. ",
+            )
+            .push(row_a)
+            .push(button(eval_label).on_press(Message::EvalVarRpn))
+            .push(text(result).size(30))
+            .into()
     }
 
     fn ex06(&self) -> Element<Message> {
-        column![text("ex06").size(50)].spacing(20).into()
+        Self::scene_container("ex06").into()
     }
 
     fn ex07(&self) -> Element<Message> {
-        column![text("ex07").size(50)].spacing(20).into()
+        Self::scene_container("ex07").into()
     }
 
     fn ex08(&self) -> Element<Message> {
-        column![text("ex08").size(50)].spacing(20).into()
+        Self::scene_container("ex08").into()
     }
 
     fn ex09(&self) -> Element<Message> {
-        column![text("ex09").size(50)].spacing(20).into()
+        Self::scene_container("ex09").into()
     }
 
     fn ex10(&self) -> Element<Message> {
-        column![text("ex10").size(50)].spacing(20).into()
+        Self::scene_container("ex10").into()
     }
 
     fn ex11(&self) -> Element<Message> {
-        column![text("ex11").size(50)].spacing(20).into()
-    }
-}
-
-#[derive(Default, Debug, Clone, Copy)]
-enum Screen {
-    #[default]
-    Home,
-    Ex00,
-    Ex01,
-    Ex02,
-    Ex03,
-    Ex04,
-    Ex05,
-    Ex06,
-    Ex07,
-    Ex08,
-    Ex09,
-    Ex10,
-    Ex11,
-}
-
-impl Screen {
-    const ALL: &'static [Self] = &[
-        Self::Home,
-        Self::Ex00,
-        Self::Ex01,
-        Self::Ex02,
-        Self::Ex03,
-        Self::Ex04,
-        Self::Ex05,
-        Self::Ex06,
-        Self::Ex07,
-        Self::Ex08,
-        Self::Ex09,
-        Self::Ex10,
-        Self::Ex11,
-    ];
-
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Self::Home => "Home",
-            Self::Ex00 => "Ex00",
-            Self::Ex01 => "Ex01",
-            Self::Ex02 => "Ex02",
-            Self::Ex03 => "Ex03",
-            Self::Ex04 => "Ex04",
-            Self::Ex05 => "Ex05",
-            Self::Ex06 => "Ex06",
-            Self::Ex07 => "Ex07",
-            Self::Ex08 => "Ex08",
-            Self::Ex09 => "Ex09",
-            Self::Ex10 => "Ex10",
-            Self::Ex11 => "Ex11",
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-enum Message {
-    Screen(Screen),
-    IntInputA(String),
-    IntInputB(String),
-    DebugToggle(bool),
-}
-
-impl From<Screen> for Message {
-    fn from(value: Screen) -> Self {
-        Self::Screen(value)
+        Self::scene_container("ex11").into()
     }
 }
 
