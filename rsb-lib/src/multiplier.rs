@@ -1,17 +1,3 @@
-//! 01 Multiplier
-//! The goal is the same as the previous exercise (00 Adder), except
-//! the returned natural number equals a * b. The only operations you’re
-//! allowed to use are:
-//!     - & (bitwise AND)
-//!     - | (bitwise OR)
-//!     - ^ (bitwise XOR)
-//!     - << (left shift)
-//!     - >> (right shift)
-//!     - = (assignment)
-//!     - ==, !=, <, >, <=, >= (comparison operators)
-//! The incrementation operator (++ or += 1) is allowed only to increment
-//! the index of a loop and must not be used to compute the result itself.
-
 use crate::adder;
 
 /// For the solution I decided to go with the Russian peasant method

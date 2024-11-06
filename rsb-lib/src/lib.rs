@@ -23,6 +23,10 @@ pub fn eval_formula(formula: &str) -> bool {
     rpn.value()
 }
 
+pub fn eval_set(formula: &str, sets: Vec<Vec<i32>>) -> Vec<i32> {
+    todo!()
+}
+
 pub fn negation_normal_form(formula: &str) -> String {
     let mut rpn: VarNode = Lexer::new(formula).into();
     rpn.nnf_reduce();

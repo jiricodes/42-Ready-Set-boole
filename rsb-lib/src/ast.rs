@@ -576,16 +576,6 @@ impl Display for VarNode {
     }
 }
 
-// impl Debug for VarNode {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             VarNode::Leaf(val) => write!(f, "Val({})", val),
-//             VarNode::OneOp { left, op } => write!(f, "{}({})", op.as_symbol(), left),
-//             VarNode::TwoOp { left, right, op } => write!(f, "{}({}{})", op.as_symbol(), left, right),
-//         }
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use crate::Lexer;

@@ -12,4 +12,6 @@ The project instructions as given by the 42 curriculum.
 ## Various
 - [Polish notation and binary trees](https://sites.math.northwestern.edu/~mlerma/courses/cs310-04w/notes/dm-bintrees.pdf)
 - [BinTree blog post](https://medium.com/swlh/rust-binary-tree-a-refactor-1b090a88e24)
+- [Gray code by shifting and xor](https://www.grant-trebbin.com/2017/03/converting-binary-to-gray-code-with-xor.html)
+
 
